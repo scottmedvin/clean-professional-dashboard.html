@@ -1,8 +1,189 @@
-" target="_blank"><span class="news-source">City</span>City of Eugene</a></li>
+***
+
+## Part 1 of 2 — Full HTML + CSS + Structure
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f4f6f9; --surface: #ffffff; --border: #e2e6ea;
+      --accent: #2563eb; --accent2: #16a34a; --text: #1e293b;
+      --sub: #64748b; --danger: #dc2626; --radius: 12px;
+      --shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-logo { font-weight: 700; font-size: 18px; color: var(--accent); letter-spacing: -.5px; }
+    #liveClock { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; }
+    .btn:hover { background: var(--bg); border-color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    #authStatus { font-size: 12px; color: var(--sub); }
+    .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px)  { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--sub); }
+    .card-badge { font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; color: var(--sub); }
+    .focus-card { grid-column: 1 / -1; }
+    .focus-date { font-size: 22px; font-weight: 700; }
+    .focus-sub  { font-size: 13px; color: var(--sub); margin-top: 2px; }
+    .focus-input, .notes-area {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; font-size: 14px; font-family: inherit;
+      color: var(--text); background: var(--bg); resize: vertical; line-height: 1.6;
+    }
+    .focus-input { min-height: 52px; resize: none; }
+    .notes-area  { min-height: 160px; }
+    .focus-input:focus, .notes-area:focus { outline: none; border-color: var(--accent); }
+    .task-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
+    .task-item:hover { background: var(--bg); }
+    .task-item.done .task-title { text-decoration: line-through; color: var(--sub); }
+    .task-check { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: background .1s, border-color .1s; }
+    .task-item.done .task-check { background: var(--accent2); border-color: var(--accent2); }
+    .task-item.done .task-check::after { content: '✓'; color: #fff; font-size: 10px; }
+    .task-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+    .task-due   { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .task-due.overdue { color: var(--danger); font-weight: 600; }
+    .task-add { display: flex; gap: 8px; margin-top: 4px; }
+    .task-add input { flex: 1; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--bg); }
+    .task-add input:focus { outline: none; border-color: var(--accent); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 12px; }
+    .cal-dow { text-align: center; font-weight: 700; color: var(--sub); padding: 4px 0; font-size: 11px; text-transform: uppercase; }
+    .cal-day { text-align: center; padding: 5px 2px; border-radius: 6px; font-size: 12px; }
+    .cal-day.other-month { color: #cbd5e1; }
+    .cal-day.today { background: var(--accent); color: #fff; font-weight: 700; }
+    .cal-day.has-event { position: relative; }
+    .cal-day.has-event::after { content: ''; display: block; width: 4px; height: 4px; background: var(--accent2); border-radius: 50%; margin: 1px auto 0; }
+    .cal-day.today.has-event::after { background: #fff; }
+    .agenda-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .agenda-item { display: flex; gap: 8px; padding: 7px 10px; border-radius: 8px; border-left: 3px solid var(--accent); background: var(--bg); font-size: 13px; }
+    .agenda-item .time { font-size: 11px; color: var(--sub); white-space: nowrap; padding-top: 2px; min-width: 52px; }
+    .agenda-item .summary { font-weight: 500; }
+    .agenda-item .location { font-size: 11px; color: var(--sub); }
+    .notes-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+    .notes-saved { font-size: 11px; color: var(--accent2); }
+    .news-list { list-style: none; display: flex; flex-direction: column; }
+    .news-item a { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; text-decoration: none; color: var(--text); font-size: 13px; }
+    .news-item a:hover { background: var(--bg); color: var(--accent); }
+    .news-source { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--sub); letter-spacing: .05em; white-space: nowrap; min-width: 48px; }
+    .news-divider { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--sub); letter-spacing: .07em; padding: 10px 10px 4px; }
+    .empty-state { font-size: 13px; color: var(--sub); text-align: center; padding: 18px 0; }
+    .spinner { border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; width: 22px; height: 22px; animation: spin .7s linear infinite; margin: 14px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .scroll-panel { max-height: 260px; overflow-y: auto; }
+    .scroll-panel::-webkit-scrollbar { width: 4px; }
+    .scroll-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-logo">⚡ Dashboard</span>
+    <span id="liveClock"></span>
+  </div>
+  <div class="topbar-right">
+    <span id="authStatus">Not connected</span>
+    <button class="btn btn-primary" id="connectBtn" onclick="handleAuthClick()" disabled>Connect Google</button>
+    <button class="btn" id="signoutBtn" onclick="handleSignoutClick()" style="display:none">Sign out</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="grid">
+
+    <!-- TODAY FOCUS -->
+    <div class="card focus-card">
+      <div class="card-header">
+        <div>
+          <div class="focus-date" id="focusDate"></div>
+          <div class="focus-sub">What's your #1 focus today?</div>
+        </div>
+      </div>
+      <textarea class="focus-input" id="focusInput" rows="2" placeholder="Type your main focus for today…"></textarea>
+    </div>
+
+    <!-- TASKS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Active Tasks</span>
+        <span class="card-badge" id="taskBadge">—</span>
+      </div>
+      <div class="card-body scroll-panel">
+        <ul class="task-list" id="taskList">
+          >Connect Google to load tasks</li>
+        </ul>
+      </div>
+      <div class="task-add">
+        <input type="text" id="newTaskInput" placeholder="Add a task…" onkeydown="if(event.key==='Enter') addLocalTask()" />
+        <button class="btn" onclick="addLocalTask()">Add</button>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" id="calMonthLabel"></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="changeMonth(-1)">‹</button>
+          <button class="btn" onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div style="margin-top:4px;font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em">Upcoming</div>
+      <div class="scroll-panel">
+        <ul class="agenda-list" id="agendaList">
+          >Connect Google to load events</li>
         </ul>
       </div>
     </div>
 
+    <!-- NOTES -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Notes</span>
+        <button class="btn" onclick="clearNotes()">Clear</button>
+      </div>
+      <textarea class="notes-area" id="notesArea" placeholder="Type your notes here… auto-saved locally."></textarea>
+      <div class="notes-footer">
+        <span class="notes-saved" id="notesSaved"></span>
+        <span style="font-size:11px;color:var(--sub)">Saved in browser</span>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-header">
+        <span class="card-title">News &amp; Feeds</span>
+      </div>
+      <div class="card-body scroll-panel">
+        <div class="news-divider">Top News</div>
+        <ul class="news-list">
+          ><a href="https://news.google.com" target="_blank"><span class="news-source">Google</span>Google News — Top Stories</a></li>
+          ><a href="https://apnews.com" target="_blank"><span class="news-source">AP</span>AP News</a></li>
+          ><a href="https://www.reuters.com" target="_blank"><span class="news-source">Reuters</span>Reuters</a></li>
+          ><a href="https://www.npr.org/sections/news/" target="_blank"><span class="news-source">NPR</span>NPR News</a></li>
+        </ul>
+        <div class="news-divider">Local — Eugene, OR</div>
+        <ul class="news-list">
+          ><a href="https://www.registerguard.com" target="_blank"><span class="news-source">RG</span>Register-Guard</a></li>
+          ><a href="https://www.eugene-or.gov
+                         </div>
+    </div>
   </div>
 </main>
 
@@ -10,337 +191,35 @@
 <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// GOOGLE API CONFIGURATION
-// ══════════════════════════════════════════════════════════
 const CLIENT_ID = '493713294892-7hjec2ik81ll3ophl85uhujj5ositfk8.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCdmAgb1hU3D2yN-jn.J0rChFsFq02gISAs';
-const DISCOVERY_DOCS = [
-  'https://www.googleapis.com/discovery/v1/apis/tasks/v1/rest',
-  'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
-];
+const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/tasks/v1/rest','https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'];
 const SCOPES = 'https://www.googleapis.com/auth/tasks.readonly https://www.googleapis.com/auth/calendar.readonly';
-
-let tokenClient;
-let gapiInited = false;
-let gisInited = false;
-
-function gapiLoaded() {
-  gapi.load('client', initializeGapiClient);
-}
-
-async function initializeGapiClient() {
-  await gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: DISCOVERY_DOCS,
-  });
-  gapiInited = true;
-  maybeEnableButtons();
-}
-
-function gisLoaded() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: '',
-  });
-  gisInited = true;
-  maybeEnableButtons();
-}
-
-function maybeEnableButtons() {
-  if (gapiInited && gisInited) {
-    document.getElementById('connectBtn').disabled = false;
-  }
-}
-
-function handleAuthClick() {
-  tokenClient.callback = async (resp) => {
-    if (resp.error !== undefined) throw resp;
-    document.getElementById('authStatus').textContent = 'Connected';
-    document.getElementById('connectBtn').style.display = 'none';
-    document.getElementById('signoutBtn').style.display = 'block';
-    await loadGoogleData();
-  };
-  if (gapi.client.getToken() === null) {
-    tokenClient.requestAccessToken({ prompt: 'consent' });
-  } else {
-    tokenClient.requestAccessToken({ prompt: '' });
-  }
-}
-
-function handleSignoutClick() {
-  const token = gapi.client.getToken();
-  if (token !== null) {
-    google.accounts.oauth2.revoke(token.access_token);
-    gapi.client.setToken('');
-  }
-  document.getElementById('authStatus').textContent = 'Not connected';
-  document.getElementById('connectBtn').style.display = 'block';
-  document.getElementById('signoutBtn').style.display = 'none';
-  document.getElementById('taskList').innerHTML = '>Connect Google to load tasks</li>';
-  document.getElementById('agendaList').innerHTML = '>Connect Google to load events</li>';
-}
-  
-// ══════════════════════════════════════════════════════════
-// DATA LOADING
-// ══════════════════════════════════════════════════════════
-async function loadGoogleData() {
-  await Promise.all([loadTasks(), loadEvents()]);
-}
-
-async function loadTasks() {
-  try {
-    const taskListResp = await gapi.client.tasks.tasklists.list({ maxResults: 1 });
-    if (!taskListResp.result.items?.length) {
-      document.getElementById('taskList').innerHTML = '>No task lists found</li>';
-      return;
-    }
-    const listId = taskListResp.result.items[0].id;
-    const tasksResp = await gapi.client.tasks.tasks.list({
-      tasklist: listId,
-      showCompleted: false,
-      maxResults: 20,
-    });
-    const ul = document.getElementById('taskList');
-    ul.innerHTML = '';
-    if (!tasksResp.result.items || tasksResp.result.items.length === 0) {
-      ul.innerHTML = '>No active tasks</li>';
-      return;
-    }
-    tasksResp.result.items.forEach(task => {
-      const li = document.createElement('li');
-      li.className = 'task-item';
-      const dueText = task.due ? formatTaskDue(task.due) : '';
-      const overdue = task.due && new Date(task.due) < new Date() ? ' overdue' : '';
-      li.innerHTML = `
-        <div class="task-check" onclick="toggleTask(this)"></div>
-        <div style="flex:1">
-          <div class="task-title">${escapeHtml(task.title || '(untitled)')}</div>
-          ${dueText ? `<div class="task-due${overdue}">${dueText}</div>` : ''}
-        </div>`;
-      ul.appendChild(li);
-    });
-    updateTaskCount();
-  } catch (err) {
-    console.error('Error loading tasks:', err);
-    document.getElementById('taskList').innerHTML = '>Error loading tasks</li>';
-  }
-}
-
-async function loadEvents() {
-  try {
-    const now = new Date();
-    const timeMin = now.toISOString();
-    const timeMax = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
-    const resp = await gapi.client.calendar.events.list({
-      calendarId: 'primary',
-      timeMin,
-      timeMax,
-      singleEvents: true,
-      orderBy: 'startTime',
-      maxResults: 10,
-    });
-    const ul = document.getElementById('agendaList');
-    ul.innerHTML = '';
-    if (!resp.result.items || resp.result.items.length === 0) {
-      ul.innerHTML = '>No upcoming events</li>';
-      return;
-    }
-    resp.result.items.forEach(ev => {
-      const start = ev.start.dateTime || ev.start.date;
-      const startDate = new Date(start);
-      const timeLabel = ev.start.dateTime
-        ? startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-        : 'All day';
-      const li = document.createElement('li');
-      li.className = 'agenda-item';
-      li.innerHTML = `
-        <div class="time">${timeLabel}</div>
-        <div style="flex:1">
-          <div class="summary">${escapeHtml(ev.summary || '(no title)')}</div>
-          ${ev.location ? `<div class="location">${escapeHtml(ev.location)}</div>` : ''}
-        </div>`;
-      ul.appendChild(li);
-    });
-  } catch (err) {
-    console.error('Error loading events:', err);
-    document.getElementById('agendaList').innerHTML = '>Error loading events</li>';
-  }
-}
-  
-// ══════════════════════════════════════════════════════════
-// TASKS - LOCAL MANAGEMENT
-// ══════════════════════════════════════════════════════════
-function toggleTask(el) {
-  const item = el.closest('.task-item');
-  item.classList.toggle('done');
-  updateTaskCount();
-}
-
-function updateTaskCount() {
-  const total = document.querySelectorAll('.task-item').length;
-  const done = document.querySelectorAll('.task-item.done').length;
-  const active = total - done;
-  document.getElementById('taskBadge').textContent = active > 0 ? active : '✓';
-}
-
-function addLocalTask() {
-  const input = document.getElementById('newTaskInput');
-  const text = input.value.trim();
-  if (!text) return;
-  const ul = document.getElementById('taskList');
-  if (ul.querySelector('.empty-state')) ul.innerHTML = '';
-  const li = document.createElement('li');
-  li.className = 'task-item';
-  li.innerHTML = `
-    <div class="task-check" onclick="toggleTask(this)"></div>
-    <div style="flex:1"><div class="task-title">${escapeHtml(text)}</div></div>`;
-  ul.appendChild(li);
-  input.value = '';
-  updateTaskCount();
-}
-
-// ══════════════════════════════════════════════════════════
-// CALENDAR
-// ══════════════════════════════════════════════════════════
-let currentMonth = new Date();
-
-function renderCalendar() {
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
-  document.getElementById('calMonthLabel').textContent = 
-    currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
-    const dow = document.createElement('div');
-    dow.className = 'cal-dow';
-    dow.textContent = day;
-    grid.appendChild(dow);
-  });
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const prevMonthDays = new Date(year, month, 0).getDate();
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const day = document.createElement('div');
-    day.className = 'cal-day other-month';
-    day.textContent = prevMonthDays - i;
-    grid.appendChild(day);
-  }
-  const today = new Date();
-  for (let d = 1; d <= daysInMonth; d++) {
-    const day = document.createElement('div');
-    day.className = 'cal-day';
-    day.textContent = d;
-    if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
-      day.classList.add('today');
-    }
-    grid.appendChild(day);
-  }
-  const totalCells = grid.children.length - 7;
-  const remaining = 42 - totalCells;
-  for (let d = 1; d <= remaining; d++) {
-    const day = document.createElement('div');
-    day.className = 'cal-day other-month';
-    day.textContent = d;
-    grid.appendChild(day);
-  }
-}
-
-function changeMonth(delta) {
-  currentMonth.setMonth(currentMonth.getMonth() + delta);
-  renderCalendar();
-}
-  
-// ══════════════════════════════════════════════════════════
-// CLOCK & DATE
-// ══════════════════════════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  document.getElementById('liveClock').textContent = 
-    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById('focusDate').textContent = now.toLocaleDateString('en-US', options);
-}
-
-// ══════════════════════════════════════════════════════════
-// NOTES
-// ══════════════════════════════════════════════════════════
-function saveNotes() {
-  const text = document.getElementById('notesArea').value;
-  localStorage.setItem('dashboardNotes', text);
-  document.getElementById('notesSaved').textContent = 'Saved';
-  setTimeout(() => { document.getElementById('notesSaved').textContent = ''; }, 2000);
-}
-
-function loadNotes() {
-  const saved = localStorage.getItem('dashboardNotes');
-  if (saved) {
-    document.getElementById('notesArea').value = saved;
-  }
-}
-
-function clearNotes() {
-  if (confirm('Clear all notes?')) {
-    document.getElementById('notesArea').value = '';
-    localStorage.removeItem('dashboardNotes');
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// FOCUS INPUT
-// ══════════════════════════════════════════════════════════
-function saveFocus() {
-  const text = document.getElementById('focusInput').value;
-  const date = new Date().toDateString();
-  localStorage.setItem('dashboardFocus', JSON.stringify({ text, date }));
-}
-
-function loadFocus() {
-  const saved = localStorage.getItem('dashboardFocus');
-  if (saved) {
-    const { text, date } = JSON.parse(saved);
-    const today = new Date().toDateString();
-    if (date === today) {
-      document.getElementById('focusInput').value = text;
-    }
-  }
-}
-  
-// ══════════════════════════════════════════════════════════
-// UTILITIES
-// ══════════════════════════════════════════════════════════
-function escapeHtml(text) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function formatTaskDue(dueString) {
-  const due = new Date(dueString);
-  const now = new Date();
-  const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return 'Overdue';
-  if (diffDays === 0) return 'Due today';
-  if (diffDays === 1) return 'Due tomorrow';
-  if (diffDays <= 7) return `Due in ${diffDays} days`;
-  return `Due ${due.toLocaleDateString()}`;
-}
-
-// ══════════════════════════════════════════════════════════
-// INITIALIZATION
-// ══════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  updateClock();
-  setInterval(updateClock, 60000);
-  renderCalendar();
-  loadNotes();
-  loadFocus();
-  updateTaskCount();
-  
-  document.getElementById('notesArea').addEventListener('input', saveNotes);
-  document.getElementById('focusInput').addEventListener('input', saveFocus);
-});
+let tokenClient,gapiInited=false,gisInited=false;
+function gapiLoaded(){gapi.load('client',initializeGapiClient)}
+async function initializeGapiClient(){await gapi.client.init({apiKey:API_KEY,discoveryDocs:DISCOVERY_DOCS});gapiInited=true;maybeEnableButtons()}
+function gisLoaded(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:''});gisInited=true;maybeEnableButtons()}
+function maybeEnableButtons(){if(gapiInited&&gisInited)document.getElementById('connectBtn').disabled=false}
+function handleAuthClick(){tokenClient.callback=async(resp)=>{if(resp.error!==undefined)throw resp;document.getElementById('authStatus').textContent='Connected';document.getElementById('connectBtn').style.display='none';document.getElementById('signoutBtn').style.display='block';await loadGoogleData()};if(gapi.client.getToken()===null)tokenClient.requestAccessToken({prompt:'consent'});else tokenClient.requestAccessToken({prompt:''})}
+function handleSignoutClick(){const token=gapi.client.getToken();if(token!==null){google.accounts.oauth2.revoke(token.access_token);gapi.client.setToken('')}document.getElementById('authStatus').textContent='Not connected';document.getElementById('connectBtn').style.display='block';document.getElementById('signoutBtn').style.display='none';document.getElementById('taskList').innerHTML='>Connect Google to load tasks</li>';document.getElementById('agendaList').innerHTML='>Connect Google to load events</li>'}
+async function loadGoogleData(){await Promise.all([loadTasks(),loadEvents()])}
+async function loadTasks(){try{const taskListResp=await gapi.client.tasks.tasklists.list({maxResults:1});if(!taskListResp.result.items?.length){document.getElementById('taskList').innerHTML='>No task lists found</li>';return}const listId=taskListResp.result.items[0].id;const tasksResp=await gapi.client.tasks.tasks.list({tasklist:listId,showCompleted:false,maxResults:20});const ul=document.getElementById('taskList');ul.innerHTML='';if(!tasksResp.result.items||tasksResp.result.items.length===0){ul.innerHTML='>No active tasks</li>';return}tasksResp.result.items.forEach(task=>{const li=document.createElement('li');li.className='task-item';const dueText=task.due?formatTaskDue(task.due):'';const overdue=task.due&&new Date(task.due)<new Date()?' overdue':'';li.innerHTML=`<div class="task-check" onclick="toggleTask(this)"></div><div style="flex:1"><div class="task-title">${escapeHtml(task.title||'(untitled)')}</div>${dueText?`<div class="task-due${overdue}">${dueText}</div>`:''}</div>`;ul.appendChild(li)});updateTaskCount()}catch(err){console.error('Error loading tasks:',err);document.getElementById('taskList').innerHTML='>Error loading tasks</li>'}}
+async function loadEvents(){try{const now=new Date();const timeMin=now.toISOString();const timeMax=new Date(now.getTime()+14*24*60*60*1000).toISOString();const resp=await gapi.client.calendar.events.list({calendarId:'primary',timeMin,timeMax,singleEvents:true,orderBy:'startTime',maxResults:10});const ul=document.getElementById('agendaList');ul.innerHTML='';if(!resp.result.items||resp.result.items.length===0){ul.innerHTML='>No upcoming events</li>';return}resp.result.items.forEach(ev=>{const start=ev.start.dateTime||ev.start.date;const startDate=new Date(start);const timeLabel=ev.start.dateTime?startDate.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'All day';const li=document.createElement('li');li.className='agenda-item';li.innerHTML=`<div class="time">${timeLabel}</div><div style="flex:1"><div class="summary">${escapeHtml(ev.summary||'(no title)')}</div>${ev.location?`<div class="location">${escapeHtml(ev.location)}</div>`:''}</div>`;ul.appendChild(li)})}catch(err){console.error('Error loading events:',err);document.getElementById('agendaList').innerHTML='>Error loading events</li>'}}
+function toggleTask(el){const item=el.closest('.task-item');item.classList.toggle('done');updateTaskCount()}
+function updateTaskCount(){const total=document.querySelectorAll('.task-item').length;const done=document.querySelectorAll('.task-item.done').length;const active=total-done;document.getElementById('taskBadge').textContent=active>0?active:'✓'}
+function addLocalTask(){const input=document.getElementById('newTaskInput');const text=input.value.trim();if(!text)return;const ul=document.getElementById('taskList');if(ul.querySelector('.empty-state'))ul.innerHTML='';const li=document.createElement('li');li.className='task-item';li.innerHTML=`<div class="task-check" onclick="toggleTask(this)"></div><div style="flex:1"><div class="task-title">${escapeHtml(text)}</div></div>`;ul.appendChild(li);input.value='';updateTaskCount()}
+let currentMonth=new Date();
+function renderCalendar(){const year=currentMonth.getFullYear();const month=currentMonth.getMonth();document.getElementById('calMonthLabel').textContent=currentMonth.toLocaleDateString('en-US',{month:'long',year:'numeric'});const grid=document.getElementById('calGrid');grid.innerHTML='';['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(day=>{const dow=document.createElement('div');dow.className='cal-dow';dow.textContent=day;grid.appendChild(dow)});const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();const prevMonthDays=new Date(year,month,0).getDate();for(let i=firstDay-1;i>=0;i--){const day=document.createElement('div');day.className='cal-day other-month';day.textContent=prevMonthDays-i;grid.appendChild(day)}const today=new Date();for(let d=1;d<=daysInMonth;d++){const day=document.createElement('div');day.className='cal-day';day.textContent=d;if(year===today.getFullYear()&&month===today.getMonth()&&d===today.getDate())day.classList.add('today');grid.appendChild(day)}const totalCells=grid.children.length-7;const remaining=42-totalCells;for(let d=1;d<=remaining;d++){const day=document.createElement('div');day.className='cal-day other-month';day.textContent=d;grid.appendChild(day)}}
+function changeMonth(delta){currentMonth.setMonth(currentMonth.getMonth()+delta);renderCalendar()}
+function updateClock(){const now=new Date();document.getElementById('liveClock').textContent=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});const options={weekday:'long',year:'numeric',month:'long',day:'numeric'};document.getElementById('focusDate').textContent=now.toLocaleDateString('en-US',options)}
+function saveNotes(){const text=document.getElementById('notesArea').value;localStorage.setItem('dashboardNotes',text);document.getElementById('notesSaved').textContent='Saved';setTimeout(()=>{document.getElementById('notesSaved').textContent=''},2000)}
+function loadNotes(){const saved=localStorage.getItem('dashboardNotes');if(saved)document.getElementById('notesArea').value=saved}
+function clearNotes(){if(confirm('Clear all notes?')){document.getElementById('notesArea').value='';localStorage.removeItem('dashboardNotes')}}
+function saveFocus(){const text=document.getElementById('focusInput').value;const date=new Date().toDateString();localStorage.setItem('dashboardFocus',JSON.stringify({text,date}))}
+function loadFocus(){const saved=localStorage.getItem('dashboardFocus');if(saved){const{text,date}=JSON.parse(saved);const today=new Date().toDateString();if(date===today)document.getElementById('focusInput').value=text}}
+function escapeHtml(text){const map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return text.replace(/[&<>"']/g,m=>map[m])}
+function formatTaskDue(dueString){const due=new Date(dueString);const now=new Date();const diffDays=Math.ceil((due-now)/(1000*60*60*24));if(diffDays<0)return'Overdue';if(diffDays===0)return'Due today';if(diffDays===1)return'Due tomorrow';if(diffDays<=7)return`Due in ${diffDays} days`;return`Due ${due.toLocaleDateString()}`}
+document.addEventListener('DOMContentLoaded',()=>{updateClock();setInterval(updateClock,60000);renderCalendar();loadNotes();loadFocus();updateTaskCount();document.getElementById('notesArea').addEventListener('input',saveNotes);document.getElementById('focusInput').addEventListener('input',saveFocus)});
 </script>
 
 </body>
